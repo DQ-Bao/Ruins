@@ -7,7 +7,7 @@ SRC_DIR := src
 INCLUDES := include $(VENDOR_DIR)/SDL2/include
 LIB_DIRS := $(VENDOR_DIR)/SDL2/lib
 ASSETS_DIR := assets
-SOURCES := $(shell find $(SRC_DIR) -type f -name "*.c")
+SOURCES := $(shell find $(SRC_DIR) -type f -name "*.c" ! -wholename "$(SRC_DIR)/config_assets.c")
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.c=$(INT_DIR)/%.o)
 DEPENDS := $(OBJECTS:%.o=%.d)
 DLLS := $(shell find $(VENDOR_DIR) -type f -path "*/bin/*.dll")
@@ -15,7 +15,8 @@ TARGET := $(BIN_DIR)/Ruins
 
 config ?= debug
 ifeq ($(config),debug)
-	CFLAGS := -DDEBUG -g3 -ggdb $(addprefix -I,$(INCLUDES)) -Wall -Wextra -Wpedantic -MMD -MP
+	WARNINGS := -Wall -Wextra -Wpedantic
+	CFLAGS := -DDEBUG -g3 -ggdb $(addprefix -I,$(INCLUDES)) $(WARNINGS) -MMD -MP
 else ifeq ($(config),release)
 	CFLAGS := -O3 $(addprefix -I,$(INCLUDES)) -Wall -Wextra -Wpedantic -MMD -MP
 endif
@@ -26,37 +27,45 @@ else
 	MUTE := @
 endif
 
-all: dir $(TARGET) db
-	@echo -e "\033[1;32mAll done\033[0m"
+all: dir assets $(TARGET) db
+	@echo All done
 
 dir:
-	@echo -e "\033[1;32mCreating build directory\033[0m"
+	@echo Creating build directory
 	$(MUTE)mkdir -p $(INT_DIR)
 
-$(TARGET): $(OBJECTS)
-	@echo -e "\033[1;32mLinking $@\033[0m"
-	$(MUTE)$(CC) $^ $(LDFLAGS) -o $@
-	@echo -e "\033[1;32mCopying dlls and assets\033[0m"
-	$(MUTE)cp $(DLLS) $(BIN_DIR)
+assets: dir $(BIN_DIR)/config_assets $(ASSETS_DIR)/assets.conf
+	@echo Copying assets
 	$(MUTE)cp -r $(ASSETS_DIR) $(BIN_DIR)
+	$(MUTE)$(BIN_DIR)/config_assets $(ASSETS_DIR)/assets.conf > include/ruins_asset_defines.h
+
+$(BIN_DIR)/config_assets: $(INT_DIR)/config_assets.o $(INT_DIR)/ruins_parser.o $(INT_DIR)/ruins_string.o $(INT_DIR)/ruins_containers.o
+	$(MUTE)$(CC) $^ -Wl,-Map,$(BIN_DIR)/config_assets.map -o $@
+
+$(TARGET): $(OBJECTS)
+	@echo Linking $@
+	$(MUTE)$(CC) $^ $(LDFLAGS) -o $@
+	@echo Copying dlls
+	$(MUTE)cp $(DLLS) $(BIN_DIR)
 
 $(INT_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo -e "\033[1;32mCompiling $<\033[0m"
+	@echo Compiling $<
 	$(MUTE)$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEPENDS)
 
 db:
-	@echo -e "\033[1;32mGenerating compile_commands.json\033[0m"
+	@echo Generating compile_commands.json
 	$(MUTE)compiledb -n make --cmd=mingw32-make
 
 run:
-	@echo -e "\033[1;32mRunning $(TARGET)\033[0m"
+	@echo Running $(TARGET)
 	$(MUTE)cd $(BIN_DIR)
 	$(MUTE)./$(TARGET)
 
 clean:
+	$(MUTE)rm -rf include/ruins_asset_defines.h
 	$(MUTE)rm -rf $(BIN_DIR)
-	@echo -e "\033[1;32mClean done\033[0m"
+	@echo Clean done
 
-.PHONY: all clean
+.PHONY: all clean dir assets db run

@@ -1,5 +1,6 @@
 /bin/
 /.vscode/
 /.cache/
+/.dev/
 .clang-format
 compile_commands.json

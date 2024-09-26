@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "ruins_base.h"
 #include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_scancode.h>
 
@@ -172,7 +172,7 @@ static inline KeyCode system_key_code(SDL_Scancode code)
     case SDL_SCANCODE_RALT:
         return KEY_RALT;
     default:
-        Assert("Invalid key\n");
+        rerror("Invalid key");
     }
     return KEY_INVALID;
 }
@@ -192,7 +192,7 @@ static inline MouseButton system_mouse_code(u8 sdl_button)
     case SDL_BUTTON_X2:
         return MOUSE_BUTTON_SIDE_Y;
     default:
-        Assert("Invalid button\n");
+        rerror("Invalid button");
     }
     return MOUSE_BUTTON_INVALID;
 }
