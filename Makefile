@@ -4,21 +4,20 @@ BIN_DIR := bin
 INT_DIR := $(BIN_DIR)/int
 VENDOR_DIR := vendor
 SRC_DIR := src
-INCLUDES := include $(VENDOR_DIR)/SDL2/include
 LIB_DIRS := $(VENDOR_DIR)/SDL2/lib
 ASSETS_DIR := assets
 SOURCES := $(shell find $(SRC_DIR) -type f -name "*.c" ! -wholename "$(SRC_DIR)/config_assets.c")
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.c=$(INT_DIR)/%.o)
 DEPENDS := $(OBJECTS:%.o=%.d)
-DLLS := $(shell find $(VENDOR_DIR) -type f -path "*/bin/*.dll")
+DLLS := $(shell find $(VENDOR_DIR)/SDL2/dll -type f -name "*.dll")
 TARGET := $(BIN_DIR)/Ruins
 
 config ?= debug
 ifeq ($(config),debug)
 	WARNINGS := -Wall -Wextra -Wpedantic
-	CFLAGS := -DDEBUG -g3 -ggdb $(addprefix -I,$(INCLUDES)) $(WARNINGS) -MMD -MP
+	CFLAGS := -DDEBUG -g3 -ggdb $(WARNINGS) -MMD -MP
 else ifeq ($(config),release)
-	CFLAGS := -O3 $(addprefix -I,$(INCLUDES)) -Wall -Wextra -Wpedantic -MMD -MP
+	CFLAGS := -O3 -Wall -Wextra -Wpedantic -MMD -MP
 endif
 LDFLAGS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer $(addprefix -L,$(LIB_DIRS)) -Wl,-Map,$(TARGET).map
 
@@ -29,6 +28,9 @@ endif
 
 all: dir assets $(TARGET) db
 	@echo All done
+
+build: dir assets $(TARGET)
+	@echo Build done
 
 dir:
 	@echo Creating build directory
@@ -50,7 +52,7 @@ $(TARGET): $(OBJECTS)
 
 $(INT_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo Compiling $<
-	$(MUTE)$(CC) $(CFLAGS) -c $< -o $@
+	$(MUTE)$(CC) $(CFLAGS) -Iinclude -I$(VENDOR_DIR)/SDL2/include -c $< -o $@
 
 -include $(DEPENDS)
 
@@ -68,4 +70,4 @@ clean:
 	$(MUTE)rm -rf $(BIN_DIR)
 	@echo Clean done
 
-.PHONY: all clean dir assets db run
+.PHONY: all build clean dir assets db run

@@ -17,14 +17,15 @@ static void render_background(SDL_Renderer* renderer, Background* background)
 
 void game_startup(Game* game)
 {
-    game->background.layers[0] = assets.textures[BACKGROUND_1_TEXTURE_INDEX].texture;
-    game->background.layers[1] = assets.textures[BACKGROUND_2_TEXTURE_INDEX].texture;
-    game->background.layers[2] = assets.textures[BACKGROUND_3_TEXTURE_INDEX].texture;
-    game->background.layers[3] = assets.textures[BACKGROUND_4_TEXTURE_INDEX].texture;
-    game->background.layers[4] = assets.textures[BACKGROUND_5_TEXTURE_INDEX].texture;
+    game->background.layers[0] = assets.textures[TEXTURE_BACKGROUND_1_INDEX].texture;
+    game->background.layers[1] = assets.textures[TEXTURE_BACKGROUND_2_INDEX].texture;
+    game->background.layers[2] = assets.textures[TEXTURE_BACKGROUND_3_INDEX].texture;
+    game->background.layers[3] = assets.textures[TEXTURE_BACKGROUND_4_INDEX].texture;
+    game->background.layers[4] = assets.textures[TEXTURE_BACKGROUND_5_INDEX].texture;
 }
 
 void game_update_and_render(Game* game, f32 delta_time)
 {
     render_background(game->renderer, &game->background);
+    render_tilemap(game->renderer, &assets.maps[MAP_LEVEL_1_INDEX].map);
 }

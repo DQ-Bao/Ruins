@@ -2,6 +2,10 @@
 #include "SDL2/SDL_render.h"
 #include "SDL2/SDL_surface.h"
 #include "ruins_base.h"
+#define TILE_COUNT_WIDTH 40
+#define TILE_COUNT_HEIGHT 23
+#define TILE_SIZE 32
+#define TILEMAP_MAX_TILES 2048
 
 typedef struct
 {
@@ -12,7 +16,7 @@ typedef struct
 typedef struct
 {
     SDL_Rect src_rect;
-    u64      texture_index;
+    i32      texture_index;
 } Sprite;
 
 typedef struct
@@ -27,6 +31,12 @@ typedef struct
 
 typedef struct
 {
+    u32 tile_size;
+    i32 tiles[TILE_COUNT_HEIGHT][TILE_COUNT_WIDTH];
+} TileMap;
+
+typedef struct
+{
     f64              rotation_angle;
     SDL_Point        rotation_center;
     u32              scale;
@@ -34,7 +44,5 @@ typedef struct
 } RenderTransform;
 
 Texture texture_load_png(SDL_Renderer* renderer, char* filepath);
-void    render_texture(Texture* texture, i32 x, i32 y, RenderTransform* transform);
-void    render_texture_repeat(Texture* texture, i32 x, i32 y, i32 count_x, i32 count_y, RenderTransform* transform);
-void    render_sprite(Sprite* sprite, i32 x, i32 y, RenderTransform* transform);
-void    render_sprite_repeat(Sprite* sprite, i32 x, i32 y, i32 count_x, i32 count_y, RenderTransform* transform);
+void    texture_free(Texture* texture);
+void    render_tilemap(SDL_Renderer* renderer, TileMap* map);

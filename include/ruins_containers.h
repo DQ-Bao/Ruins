@@ -25,9 +25,11 @@ typedef struct
         _darray_push_end(arr, &temp); \
     }
 #define darray_concat(arr, items, count) _darray_concat(arr, items, count)
-#define darray_pop_start(type, arr) (*(type*)_darray_pop_start(arr))
-#define darray_pop_end(type, arr) (*(type*)_darray_pop_end(arr))
-#define darray_get(type, arr, index) (*(type*)_darray_get(arr, index))
+#define darray_pop_start(type, arr) (type*)_darray_pop_start(arr)
+#define darray_pop_end(type, arr) (type*)_darray_pop_end(arr)
+#define darray_get(type, arr, index) (type*)_darray_get(arr, index)
+// NOTE: can not use rvalue for value
+#define darray_find(type, arr, value) (type*)_darray_find(arr, &value)
 
 DynamicArray _darray_create(u64 capacity, u64 stride);
 void         _darray_destroy(DynamicArray* arr);
@@ -38,3 +40,4 @@ void         _darray_concat(DynamicArray* arr, void* items, u64 count);
 void*        _darray_pop_start(DynamicArray* arr);
 void*        _darray_pop_end(DynamicArray* arr);
 void*        _darray_get(DynamicArray* arr, u64 index);
+void*        _darray_find(DynamicArray* arr, void* value);

@@ -48,17 +48,25 @@ DynamicArray parse_assets_config(string source)
     DynamicArray configs = darray_create(AssetConfig);
     while (temp.count > 0)
     {
-        string line = string_cut_from_delim(&temp, '\n');
+        string line = string_cut_by_delim(&temp, '\n');
         string_trim(&line);
-        if (line.count == 0) { continue; }
-        if (*line.data == '#') { continue; }
+        if (line.count == 0)
+        {
+            string_free(&line);
+            continue;
+        }
+        if (*line.data == '#')
+        {
+            string_free(&line);
+            continue;
+        }
         AssetConfig config = { 0 };
 
-        config.name = string_cut_from_delim(&line, ':');
+        config.name = string_cut_by_delim(&line, ':');
         string_trim(&config.name);
-        config.type = string_cut_from_delim(&line, '=');
+        config.type = string_cut_by_delim(&line, '=');
         string_trim(&config.type);
-        config.value = string_cut_from_delim(&line, '#');
+        config.value = string_cut_by_delim(&line, '#');
         string_trim(&config.value);
         darray_push_end(AssetConfig, &configs, config);
         string_free(&line);

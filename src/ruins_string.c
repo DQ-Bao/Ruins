@@ -186,70 +186,170 @@ void string_trim(string* str)
 
 u8 string_to_u8(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    u8 result = 0;
+    for (u32 i = 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return result;
 }
 
 i8 string_to_i8(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    i8 result = 0;
+    b8 is_neg = str.data[0] == '-';
+
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+
+    return is_neg ? -result : result;
 }
 
 u16 string_to_u16(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    u16 result = 0;
+    for (u32 i = 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return result;
 }
 
 i16 string_to_i16(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    i16 result = 0;
+    b8  is_neg = str.data[0] == '-';
+
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return is_neg ? -result : result;
 }
 
 u32 string_to_u32(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    u32 result = 0;
+    for (u32 i = 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return result;
 }
 
 i32 string_to_i32(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    i32 result = 0;
+    b8  is_neg = str.data[0] == '-';
+
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return is_neg ? -result : result;
 }
 
 u64 string_to_u64(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    u64 result = 0;
+    for (u32 i = 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return result;
 }
 
 i64 string_to_i64(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0; }
+    i64 result = 0;
+    b8  is_neg = str.data[0] == '-';
+
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] >= '0' && str.data[i] <= '9') { result = result * 10 + (str.data[i] - 48); }
+        else { return 0; }
+    }
+    return is_neg ? -result : result;
 }
 
 f32 string_to_f32(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0.0f; }
+    f32 result = 0.0f;
+    b8  is_neg = str.data[0] == '-';
+    b8  is_dec = false;
+    f32 mul    = 0.1f;
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] == '.') { is_dec = true; }
+        else if (str.data[i] >= '0' && str.data[i] <= '9')
+        {
+            if (!is_dec) { result = result * 10.0f + (f32)(str.data[i] - 48); }
+            else
+            {
+                result = result + (f32)(str.data[i] - 48) * mul;
+                mul   /= 10.0f;
+            }
+        }
+        else { return 0.0f; }
+    }
+    return is_neg ? -result : result;
 }
 
 f64 string_to_f64(string str)
 {
-    unimplemented("");
+    if (!str.data || str.count <= 0) { return 0.0; }
+    f64 result = 0.0;
+    b8  is_neg = str.data[0] == '-';
+    b8  is_dec = false;
+    f64 mul    = 0.1;
+    for (u32 i = is_neg ? 1 : 0; i < str.count; i++)
+    {
+        if (str.data[i] == '.') { is_dec = true; }
+        else if (str.data[i] >= '0' && str.data[i] <= '9')
+        {
+            if (!is_dec) { result = result * 10.0 + (f64)(str.data[i] - 48); }
+            else
+            {
+                result = result + (f64)(str.data[i] - 48) * mul;
+                mul   /= 10.0;
+            }
+        }
+        else { return 0.0; }
+    }
+    return is_neg ? -result : result;
 }
 
-void string_cut_begin(string* str, u64 n)
+void string_cut(string* str, u64 begin, u64 n)
 {
-    unimplemented("");
+    if (!str || !str->data || str->count <= 0 || n == 0 || begin >= str->count) { return; }
+    if (begin + n < str->count)
+    {
+        if (begin == 0) { str->data += n; }
+        else { memmove(str->data + begin, str->data + begin + n, str->count - (begin + n)); }
+        str->count -= n;
+    }
+    else { str->count -= (str->count - begin); }
 }
 
-void string_cut_end(string* str, u64 n)
-{
-    unimplemented("");
-}
-
-void string_cut(string* str, u64 begin, u64 end)
-{
-    unimplemented("");
-}
-
-string string_cut_from_delim(string* str, char delim)
+string string_cut_by_delim(string* str, char delim)
 {
     string result = { 0 };
     if (!str || !str->data || str->count <= 0) { return result; }
@@ -257,19 +357,18 @@ string string_cut_from_delim(string* str, char delim)
     {
         if (str->data[i] == delim)
         {
-            result.count = i;
-            result.data  = (char*)malloc((i + 1) * sizeof(char));
-
-            result.data[result.count] = '\0';
+            result = string_sub(*str, 0, i);
 
             str->count -= i + 1;
-            memcpy(result.data, str->data, result.count);
-            result.head = result.data;
             str->data  += i + 1;
             return result;
         }
     }
-    return string_copy(*str);
+    result = string_copy(*str);
+
+    str->data += str->count;
+    str->count = 0;
+    return result;
 }
 
 string string_sub(string str, u64 begin, u64 end)
@@ -288,26 +387,38 @@ string string_sub(string str, u64 begin, u64 end)
 
 string string_concat(string left, string right)
 {
-    unimplemented("");
+    string result = { 0 };
+    result.count  = left.count + right.count;
+    result.data   = (char*)malloc((result.count + 1) * sizeof(char));
+
+    result.data[result.count] = '\0';
+    if (left.data && left.count > 0) { memcpy(result.data, left.data, left.count); }
+    if (right.data && right.count > 0) { memcpy(result.data + left.count, right.data, right.count); }
+    result.head = result.data;
+
+    return result;
 }
 
 b8 string_has_prefix(string str, string prefix)
 {
-    unimplemented("");
+    if (!str.data || !prefix.data || str.count < prefix.count) { return false; }
+    return memcmp(str.data, prefix.data, prefix.count) == 0;
 }
 
 b8 string_has_postfix(string str, string postfix)
 {
-    unimplemented("");
+    if (!str.data || !postfix.data || str.count < postfix.count) { return false; }
+    return memcmp(str.data + (str.count - postfix.count), postfix.data, postfix.count) == 0;
 }
 
 b8 string_equals(string a, string b)
 {
-    return a.count == b.count && memcmp(a.data, b.data, a.count) == 0;
+    return a.data && b.data && a.count == b.count && memcmp(a.data, b.data, a.count) == 0;
 }
 
 b8 string_equals_cstr(string a, char* b)
 {
+    if (!a.data || !b) { return false; }
     u64 count = strlen(b);
     return a.count == count && memcmp(a.data, b, count) == 0;
 }

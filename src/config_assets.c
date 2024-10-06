@@ -13,6 +13,7 @@ int main(int argc, char* argv[])
     i32 sprite_count    = 0;
     i32 sound_count     = 0;
     i32 animation_count = 0;
+    i32 tilemap_count   = 0;
 
     DynamicArray configs = parse_assets_config(content);
 
@@ -21,31 +22,36 @@ int main(int argc, char* argv[])
     fprintf(stdout, "#pragma once\n\n");
     for (u64 i = 0; i < configs.count; i++)
     {
-        AssetConfig config = darray_get(AssetConfig, &configs, i);
-        if (string_equals_cstr(config.type, "texture"))
+        AssetConfig* config = darray_get(AssetConfig, &configs, i);
+        if (string_equals_cstr(config->type, "texture"))
         {
-            fprintf(stdout, "#define %s_INDEX %d\n", config.name.data, texture_count);
+            fprintf(stdout, "#define %s_INDEX %d\n", config->name.data, texture_count);
             texture_count++;
         }
-        else if (string_equals_cstr(config.type, "sprite"))
+        else if (string_equals_cstr(config->type, "sprite"))
         {
-            fprintf(stdout, "#define %s_INDEX %d\n", config.name.data, sprite_count);
+            fprintf(stdout, "#define %s_INDEX %d\n", config->name.data, sprite_count);
             sprite_count++;
         }
-        else if (string_equals_cstr(config.type, "sound"))
+        else if (string_equals_cstr(config->type, "sound"))
         {
-            fprintf(stdout, "#define %s_INDEX %d\n", config.name.data, sound_count);
+            fprintf(stdout, "#define %s_INDEX %d\n", config->name.data, sound_count);
             sound_count++;
         }
-        else if (string_equals_cstr(config.type, "animation"))
+        else if (string_equals_cstr(config->type, "animation"))
         {
-            fprintf(stdout, "#define %s_INDEX %d\n", config.name.data, animation_count);
+            fprintf(stdout, "#define %s_INDEX %d\n", config->name.data, animation_count);
             animation_count++;
         }
+        else if (string_equals_cstr(config->type, "tilemap"))
+        {
+            fprintf(stdout, "#define %s_INDEX %d\n", config->name.data, tilemap_count);
+            tilemap_count++;
+        }
 
-        string_free(&config.name);
-        string_free(&config.type);
-        string_free(&config.value);
+        string_free(&config->name);
+        string_free(&config->type);
+        string_free(&config->value);
     }
     darray_destroy(&configs);
 

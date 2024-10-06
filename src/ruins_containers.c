@@ -84,3 +84,13 @@ void* _darray_get(DynamicArray* arr, u64 index)
     if (!arr->data || arr->count < 1) { return NULL; }
     return (void*)((u8*)arr->data + (index * arr->stride));
 }
+
+void* _darray_find(DynamicArray* arr, void* value)
+{
+    if (!arr || !arr->data || arr->count < 1) { return NULL; }
+    for (u32 i = 0; i < arr->count; i++)
+    {
+        if (memcmp(value, (u8*)arr->data + i * arr->stride, arr->stride) == 0) { return _darray_get(arr, i); }
+    }
+    return NULL;
+}

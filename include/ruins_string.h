@@ -40,10 +40,8 @@ void string_trim_begin(string* str);
 void string_trim_end(string* str);
 void string_trim(string* str);
 
-void   string_cut_begin(string* str, u64 n);
-void   string_cut_end(string* str, u64 n);
-void   string_cut(string* str, u64 begin, u64 end);
-string string_cut_from_delim(string* str, char delim);
+void   string_cut(string* str, u64 begin, u64 n);
+string string_cut_by_delim(string* str, char delim);
 
 string string_sub(string str, u64 begin, u64 end);
 string string_concat(string left, string right);
