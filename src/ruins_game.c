@@ -27,5 +27,6 @@ void game_startup(Game* game)
 void game_update_and_render(Game* game, f32 delta_time)
 {
     render_background(game->renderer, &game->background);
-    render_tilemap(game->renderer, &assets.maps[MAP_LEVEL_1_INDEX].map);
+    render_tilemap(game->renderer, &assets.maps[MAP_LEVEL_1_INDEX].platform_map);
+    render_objmap(game->renderer, &assets.maps[MAP_LEVEL_1_INDEX].object_map);
 }

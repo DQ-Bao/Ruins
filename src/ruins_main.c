@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
     f32 delta_time = 1.0f / (f32)GAME_FPS;
 
-    asset_load_from_conf(renderer, "assets/assets.conf");
+    asset_load_from_conf(renderer, "assets.conf");
 
     Game* game     = (Game*)malloc(sizeof(Game));
     game->window   = window;

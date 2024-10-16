@@ -1,16 +1,23 @@
 CC := gcc
 
+PROJ_NAME := Ruins
 BIN_DIR := bin
 INT_DIR := $(BIN_DIR)/int
 VENDOR_DIR := vendor
 SRC_DIR := src
-LIB_DIRS := $(VENDOR_DIR)/SDL2/lib
 ASSETS_DIR := assets
+
+INCLUDES := include $(VENDOR_DIR)/SDL2/include $(VENDOR_DIR)/tmx/include
+LIB_DIRS := $(VENDOR_DIR)/SDL2/lib $(VENDOR_DIR)/tmx/lib
+
 SOURCES := $(shell find $(SRC_DIR) -type f -name "*.c" ! -wholename "$(SRC_DIR)/config_assets.c")
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.c=$(INT_DIR)/%.o)
 DEPENDS := $(OBJECTS:%.o=%.d)
-DLLS := $(shell find $(VENDOR_DIR)/SDL2/dll -type f -name "*.dll")
-TARGET := $(BIN_DIR)/Ruins
+SDL2_DLLS := $(shell find $(VENDOR_DIR)/SDL2/dll -type f -name "*.dll")
+TMX_DLLS := $(shell find $(VENDOR_DIR)/tmx/dll -type f -name "*.dll")
+DLLS := $(SDL2_DLLS) $(TMX_DLLS)
+
+TARGET := $(BIN_DIR)/$(PROJ_NAME)
 
 config ?= debug
 ifeq ($(config),debug)
@@ -19,7 +26,7 @@ ifeq ($(config),debug)
 else ifeq ($(config),release)
 	CFLAGS := -O3 -Wall -Wextra -Wpedantic -MMD -MP
 endif
-LDFLAGS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer $(addprefix -L,$(LIB_DIRS)) -Wl,-Map,$(TARGET).map
+LDFLAGS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -ltmx $(addprefix -L,$(LIB_DIRS)) -Wl,-Map,$(TARGET).map
 
 ifeq ($(verbose),1)
 else
@@ -38,7 +45,7 @@ dir:
 
 assets: dir $(BIN_DIR)/config_assets $(ASSETS_DIR)/assets.conf
 	@echo Copying assets
-	$(MUTE)cp -r $(ASSETS_DIR) $(BIN_DIR)
+	$(MUTE)cp -r $(ASSETS_DIR)/. $(BIN_DIR)
 	$(MUTE)$(BIN_DIR)/config_assets $(ASSETS_DIR)/assets.conf > include/ruins_asset_defines.h
 
 $(BIN_DIR)/config_assets: $(INT_DIR)/config_assets.o $(INT_DIR)/ruins_parser.o $(INT_DIR)/ruins_string.o $(INT_DIR)/ruins_containers.o
@@ -52,7 +59,7 @@ $(TARGET): $(OBJECTS)
 
 $(INT_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo Compiling $<
-	$(MUTE)$(CC) $(CFLAGS) -Iinclude -I$(VENDOR_DIR)/SDL2/include -c $< -o $@
+	$(MUTE)$(CC) $(CFLAGS) -Iinclude -I$(VENDOR_DIR)/SDL2/include -I$(VENDOR_DIR)/tmx/include -c $< -o $@
 
 -include $(DEPENDS)
 
@@ -62,8 +69,7 @@ db:
 
 run:
 	@echo Running $(TARGET)
-	$(MUTE)cd $(BIN_DIR)
-	$(MUTE)./$(TARGET)
+	$(MUTE)cd $(BIN_DIR) && ./$(PROJ_NAME)
 
 clean:
 	$(MUTE)rm -rf include/ruins_asset_defines.h
