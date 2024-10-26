@@ -14,7 +14,7 @@ Texture* asset_get_texture_by_name(char* name)
 {
     for (u64 i = 0; i < assets.texture_count; i++)
     {
-        if (string_equals(assets.textures[i].name, string_from_cstr(name))) { return &assets.textures[i].texture; }
+        if (sv_equals(assets.textures[i].name, sv_from_cstr(name))) { return &assets.textures[i].texture; }
     }
     return NULL;
 }
@@ -29,10 +29,10 @@ u32 asset_find_or_add_texture(char* texture_name, SDL_Renderer* renderer, char* 
 {
     for (u32 i = 0; i < assets.texture_count; i++)
     {
-        if (string_equals(assets.textures[i].name, string_from_cstr(texture_name))) { return i; }
+        if (sv_equals(assets.textures[i].name, sv_from_cstr(texture_name))) { return i; }
     }
-    assets.textures[assets.texture_count].name    = string_copy(string_from_cstr(texture_name));
-    assets.textures[assets.texture_count].path    = string_copy(string_from_cstr(texture_path));
+    assets.textures[assets.texture_count].name    = sv_from_cstr(texture_name);
+    assets.textures[assets.texture_count].path    = sv_from_cstr(texture_path);
     assets.textures[assets.texture_count].texture = texture_load_png(renderer, texture_path);
     return assets.texture_count++;
 }
@@ -68,26 +68,27 @@ Frames* asset_get_frames_by_id(u32 id)
     return &assets.frames_list[id].frames;
 }
 
-static void load_texture(SDL_Renderer* renderer, string name, string path)
+static void load_texture(SDL_Renderer* renderer, string_view name, string_view path)
 {
     TextureAsset asset = { 0 };
-    asset.name         = string_copy(name);
-    asset.path         = string_copy(path);
-    asset.texture      = texture_load_png(renderer, asset.path.data);
+
+    asset.name    = name;
+    asset.path    = path;
+    asset.texture = texture_load_png(renderer, str_from_view(asset.path));
 
     assets.textures[assets.texture_count++] = asset;
 }
 
-static void load_map(SDL_Renderer* renderer, string name, string path)
+static void load_map(SDL_Renderer* renderer, string_view name, string_view path)
 {
-    tmx_map* map = tmx_load(path.data);
+    tmx_map* map = tmx_load(str_from_view(path));
     if (!map)
     {
-        rwarn("Can not load map %s: %s", name.data, path.data);
+        rlog(LOG_WARN, "Can not load map %s: %s", name.data, path.data);
         return;
     }
-    assets.maps[assets.map_count].name                   = string_copy(name);
-    assets.maps[assets.map_count].path                   = string_copy(path);
+    assets.maps[assets.map_count].name                   = name;
+    assets.maps[assets.map_count].path                   = path;
     assets.maps[assets.map_count].platform_map.tile_size = map->tile_width;
 
     tmx_layer* layer = map->ly_head;
@@ -136,8 +137,7 @@ static void load_map(SDL_Renderer* renderer, string name, string path)
                             tmx_property*   prop  = tmx_get_property(props, "anim_name");
                             if (prop && prop->type == PT_STRING)
                             {
-                                assets.frames_list[assets.frames_count].name =
-                                    string_copy(string_from_cstr(prop->value.string));
+                                assets.frames_list[assets.frames_count].name = sv_from_cstr(prop->value.string);
                                 Frames* frames      = &assets.frames_list[assets.frames_count].frames;
                                 frames->frame_count = tile->animation_len;
                                 for (u32 i = 0; i < tile->animation_len; i++)
@@ -184,29 +184,34 @@ static void load_map(SDL_Renderer* renderer, string name, string path)
 
 void asset_load_from_conf(SDL_Renderer* renderer, char* filepath)
 {
-    string content = file_read_to_string(filepath);
-    if (content.count <= 0 || !content.data) { rwarn("Can not read from file: %s", filepath); }
+    char* content = assets.configs[assets.config_count];
+    file_read_to_string(&content, filepath);
+    if (!content) { rlog(LOG_WARN, "Can not read from file: %s", filepath); }
+    assets.config_count++;
 
-    DynamicArray configs = parse_assets_config(content);
-    for (u64 i = 0; i < configs.count; i++)
+    AssetConfig* configs = parse_assets_config(content);
+    for (u64 i = 0; i < da_count(configs); i++)
     {
-        AssetConfig* config = darray_get(AssetConfig, &configs, i);
-        if (string_equals_cstr(config->type, "texture")) { load_texture(renderer, config->name, config->value); }
-        else if (string_equals_cstr(config->type, "tilemap")) { load_map(renderer, config->name, config->value); }
-        string_free(&config->name);
-        string_free(&config->type);
-        string_free(&config->value);
+        if (sv_equals(configs[i].type, sv_from_cstr("texture")))
+        {
+            load_texture(renderer, configs[i].name, configs[i].value);
+        }
+        else if (sv_equals(configs[i].type, sv_from_cstr("tilemap")))
+        {
+            load_map(renderer, configs[i].name, configs[i].value);
+        }
     }
-    darray_destroy(&configs);
-    string_free(&content);
+    da_destroy(configs);
 }
 
 void assets_clean(void)
 {
+    for (u64 i = 0; i < assets.config_count; i++)
+    {
+        if (assets.configs[i]) { free(assets.configs[i]); }
+    }
     for (u64 i = 0; i < assets.texture_count; i++)
     {
-        string_free(&assets.textures[i].name);
-        string_free(&assets.textures[i].path);
         texture_free(&assets.textures[i].texture);
     }
 }

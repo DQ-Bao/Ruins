@@ -1,13 +1,12 @@
 #pragma once
-#include "ruins_containers.h"
 #include "ruins_string.h"
 
 typedef struct
 {
-    string name;
-    string type;
-    string value;
+    string_view name;
+    string_view type;
+    string_view value;
 } AssetConfig;
 
-string       file_read_to_string(char* filepath);
-DynamicArray parse_assets_config(string source);
+string_view  file_read_to_string(char** buffer, char* filepath);
+AssetConfig* parse_assets_config(char* source);

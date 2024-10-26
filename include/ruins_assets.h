@@ -1,6 +1,7 @@
 #pragma once
 #include "ruins_render.h"
 #include "ruins_string.h"
+#define ASSET_CONFIG_CAPACITY 128
 #define ASSET_TEXTURE_CAPACITY 128
 #define ASSET_SPRITE_CAPACITY 512
 #define ASSET_FRAMES_CAPACITY 512
@@ -8,35 +9,38 @@
 
 typedef struct
 {
-    string  name;
-    string  path;
-    Texture texture;
+    string_view name;
+    string_view path;
+    Texture     texture;
 } TextureAsset;
 
 typedef struct
 {
-    string name;
-    string path;
-    Sprite sprite;
+    string_view name;
+    string_view path;
+    Sprite      sprite;
 } SpriteAsset;
 
 typedef struct
 {
-    string name;
-    string path;
-    Frames frames;
+    string_view name;
+    string_view path;
+    Frames      frames;
 } FramesAsset;
 
 typedef struct
 {
-    string    name;
-    string    path;
-    TileMap   platform_map;
-    ObjectMap object_map;
+    string_view name;
+    string_view path;
+    TileMap     platform_map;
+    ObjectMap   object_map;
 } MapAsset;
 
 typedef struct
 {
+    u64   config_count;
+    char* configs[ASSET_CONFIG_CAPACITY];
+
     u64          texture_count;
     TextureAsset textures[ASSET_TEXTURE_CAPACITY];
 

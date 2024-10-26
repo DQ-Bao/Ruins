@@ -1,8 +1,5 @@
 #pragma once
-#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -25,65 +22,58 @@ typedef _Bool    b8;
 #define SCREEN_HEIGHT 720
 #define GAME_FPS 60
 
-#define panic(...) \
-    { \
-        fprintf(stderr, __VA_ARGS__); \
-        exit(1); \
-    }
-#define unimplemented(...) \
-    { \
-        panic("Unimplemented: %s", __VA_ARGS__); \
-    }
+typedef enum
+{
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR,
+    LOG_NONE
+} LogLevel;
 
 #ifdef DEBUG
-#define rerror(...) \
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define unimplemented(msg) \
+    do \
     { \
-        fprintf(stderr, "%s: In function '%s':\n", __FILE__, __func__); \
-        fprintf(stderr, "%s:%d: error: ", __FILE__, __LINE__); \
-        fprintf(stderr, __VA_ARGS__); \
-        fprintf(stderr, "\n"); \
+        fprintf(stderr, "%s:%d: unimplemented: %s\n", __FILE__, __LINE__, msg); \
         abort(); \
-    }
+    } while (0)
 
-#define rwarn(...) \
+#define unreachable(msg) \
+    do \
     { \
-        fprintf(stderr, "%s: In function '%s':\n", __FILE__, __func__); \
-        fprintf(stderr, "%s:%d: warning: ", __FILE__, __LINE__); \
+        fprintf(stderr, "%s:%d: unreachable: %s\n", __FILE__, __LINE__, msg); \
+        abort(); \
+    } while (0)
+
+#define rlog(level, ...) \
+    do \
+    { \
+        switch (level) \
+        { \
+        case LOG_INFO: \
+            fprintf(stderr, "[INFO] "); \
+            break; \
+        case LOG_WARN: \
+            fprintf(stderr, "[WARN] "); \
+            break; \
+        case LOG_ERROR: \
+            fprintf(stderr, "[ERROR] "); \
+            break; \
+        default: \
+            unreachable("rlog"); \
+        } \
         fprintf(stderr, __VA_ARGS__); \
         fprintf(stderr, "\n"); \
-    }
+    } while (0)
 
-#define rlog(...) \
-    { \
-        fprintf(stdout, __VA_ARGS__); \
-        fprintf(stdout, "\n"); \
-    }
-
-#define rassert(x) \
-    { \
-        if (!(x)) \
-        { \
-            fprintf(stderr, "%s: In function '%s':\n", __FILE__, __func__); \
-            fprintf(stderr, "%s:%d: assertion failed:\n", __FILE__, __LINE__); \
-            fprintf(stderr, "%4d | %s\n", __LINE__, #x); \
-            abort(); \
-        } \
-    }
-#define rassert_msg(x, ...) \
-    { \
-        if (!(x)) \
-        { \
-            fprintf(stderr, "%s: In function '%s':\n", __FILE__, __func__); \
-            fprintf(stderr, "%s:%d: assertion failed: ", __FILE__, __LINE__); \
-            fprintf(stderr, __VA_ARGS__); \
-            fprintf(stderr, "\n%4d | %s\n", __LINE__, #x); \
-            abort(); \
-        } \
-    }
+#define rassert assert
 #else
-#define rerror(...)
-#define rwarn(...)
-#define rlog(...)
-#define rassert(x)
-#define rassert_msg(x, ...)
+#define unimplemented(msg)
+#define unreachable(msg)
+#define rlog(level, ...)
+#define rassert
 #endif // DEBUG

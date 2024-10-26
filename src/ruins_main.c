@@ -21,17 +21,17 @@ static b8 app_init(void)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        rerror("SDL Error: %s", SDL_GetError());
+        rlog(LOG_ERROR, "SDL Error: %s", SDL_GetError());
         return false;
     }
     if (IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG) == 0)
     {
-        rerror("SDL Error: %s", IMG_GetError());
+        rlog(LOG_ERROR, "SDL Error: %s", IMG_GetError());
         return false;
     }
     if (TTF_Init() != 0)
     {
-        rerror("SDL Error: %s", TTF_GetError());
+        rlog(LOG_ERROR, "SDL Error: %s", TTF_GetError());
         return false;
     }
     return true;
@@ -81,21 +81,21 @@ int main(int argc, char* argv[])
 {
     if (!app_init())
     {
-        rerror("App initialization failed");
+        rlog(LOG_ERROR, "App initialization failed");
         return 0;
     }
     SDL_Window* window = SDL_CreateWindow("Ruins", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                                           SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL)
     {
-        rerror("Window couldn't be created! SDL Error: %s", SDL_GetError());
+        rlog(LOG_ERROR, "Window couldn't be created! SDL Error: %s", SDL_GetError());
         return 0;
     }
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
     {
-        rerror("Renderer couldn't be created! SDL_ERROR: %s", SDL_GetError());
+        rlog(LOG_ERROR, "Renderer couldn't be created! SDL_ERROR: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         return 0;
     }

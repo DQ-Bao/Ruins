@@ -45,6 +45,11 @@ typedef enum
     KEY_9,
     KEY_0,
 
+    KEY_ARROW_LEFT,
+    KEY_ARROW_UP,
+    KEY_ARROW_RIGHT,
+    KEY_ARROW_DOWN,
+
     KEY_ENTER,
     KEY_ESCAPE,
     KEY_BACKSPACE,
@@ -84,6 +89,8 @@ static inline KeyCode system_key_code(SDL_Scancode code)
     case SDL_SCANCODE_B:
         return KEY_B;
     case SDL_SCANCODE_C:
+        return KEY_C;
+    case SDL_SCANCODE_D:
         return KEY_D;
     case SDL_SCANCODE_E:
         return KEY_E;
@@ -149,6 +156,14 @@ static inline KeyCode system_key_code(SDL_Scancode code)
         return KEY_9;
     case SDL_SCANCODE_0:
         return KEY_0;
+    case SDL_SCANCODE_LEFT:
+        return KEY_ARROW_LEFT;
+    case SDL_SCANCODE_UP:
+        return KEY_ARROW_UP;
+    case SDL_SCANCODE_RIGHT:
+        return KEY_ARROW_RIGHT;
+    case SDL_SCANCODE_DOWN:
+        return KEY_ARROW_DOWN;
     case SDL_SCANCODE_RETURN:
         return KEY_ENTER;
     case SDL_SCANCODE_ESCAPE:
@@ -172,14 +187,14 @@ static inline KeyCode system_key_code(SDL_Scancode code)
     case SDL_SCANCODE_RALT:
         return KEY_RALT;
     default:
-        rerror("Invalid key");
+        rlog(LOG_ERROR, "Invalid key code: %d", code);
     }
     return KEY_INVALID;
 }
 
-static inline MouseButton system_mouse_code(u8 sdl_button)
+static inline MouseButton system_mouse_code(u8 btn)
 {
-    switch (sdl_button)
+    switch (btn)
     {
     case SDL_BUTTON_LEFT:
         return MOUSE_BUTTON_LEFT;
@@ -192,7 +207,7 @@ static inline MouseButton system_mouse_code(u8 sdl_button)
     case SDL_BUTTON_X2:
         return MOUSE_BUTTON_SIDE_Y;
     default:
-        rerror("Invalid button");
+        rlog(LOG_ERROR, "Invalid button: %d", btn);
     }
     return MOUSE_BUTTON_INVALID;
 }

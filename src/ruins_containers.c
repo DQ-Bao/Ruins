@@ -1,96 +1,98 @@
 #include "ruins_containers.h"
+#include "ruins_base.h"
 #include <stdlib.h>
 #include <string.h>
 
-DynamicArray _darray_create(u64 count, u64 stride)
+void _da_destroy(void* head)
 {
-    DynamicArray arr = { 0 };
-    arr.capacity     = count;
-    arr.stride       = stride;
-    if (count > 0) { arr.data = malloc(count * stride); }
-    arr.head = arr.data;
-    return arr;
+    if (((ArrayHeader*)head)->hash_table) { free(((ArrayHeader*)head)->hash_table); }
+    free(head);
 }
 
-void _darray_destroy(DynamicArray* arr)
+void* _da_resize_if_need(void* arr, u64 stride, u64 new_capacity, ContainerType type)
 {
-    if (arr->head) { free(arr->head); }
-}
+    if (new_capacity < da_cap(arr)) { return arr; }
+    if (new_capacity < 2 * da_cap(arr)) { new_capacity = 2 * da_cap(arr); }
 
-static void _darray_expand(DynamicArray* arr)
-{
-    if (arr->head != arr->data) { memmove(arr->head, arr->data, arr->count); }
-    u64 new_capacity = arr->head ? 2 * arr->count : 256;
-    u64 size         = new_capacity * arr->stride;
-    arr->head        = realloc(arr->head, size);
-    arr->data        = arr->head;
-    arr->capacity    = new_capacity;
-}
+    u64   size   = stride * new_capacity + sizeof(ArrayHeader);
+    void* result = realloc((arr) ? da_header(arr) : NULL, size);
+    result       = (u8*)result + sizeof(ArrayHeader);
 
-void _darray_clear(DynamicArray* arr)
-{
-    arr->count = 0;
-}
-
-void _darray_push_start(DynamicArray* arr, void* value)
-{
-    while (arr->count + 1 > arr->capacity)
+    if (!arr)
     {
-        _darray_expand(arr);
+        da_header(result)->count      = 0;
+        da_header(result)->hash_table = NULL;
     }
-    memmove((u8*)arr->data + arr->stride, arr->data, arr->count * arr->stride);
-    memcpy(arr->data, value, arr->stride);
-    arr->count++;
-}
-
-void _darray_push_end(DynamicArray* arr, void* value)
-{
-    while (arr->count + 1 > arr->capacity)
+    da_header(result)->capacity = new_capacity;
+    if (type == CT_HASHTABLE)
     {
-        _darray_expand(arr);
+        da_header(result)->hash_table = realloc(da_header(result)->hash_table, new_capacity * sizeof(Slot));
     }
-    memcpy((u8*)arr->data + (arr->count * arr->stride), value, arr->stride);
-    arr->count++;
+    return result;
 }
 
-void _darray_concat(DynamicArray* arr, void* items, u64 count)
+void _da_copy(void* dest, void* items, u64 stride, u64 count)
 {
-    while (arr->count + count > arr->capacity)
+    if (!dest || !items) { return; }
+    if (count == 0 || stride == 0) { return; }
+    memcpy(dest, items, count * stride);
+}
+
+void _da_move(void* dest, void* items, u64 stride, u64 count)
+{
+    if (!dest || !items) { return; }
+    if (count == 0 || stride == 0) { return; }
+    memmove(dest, items, count * stride);
+}
+
+static u64 _ht_hash_djb2(void* data, u64 size)
+{
+    u64 hash  = 5381;
+    u8* bytes = (u8*)data;
+    for (u32 i = 0; i < size; i++)
     {
-        _darray_expand(arr);
+        hash = ((hash << 5) + hash) + bytes[i];
     }
-    memcpy((u8*)arr->data + (arr->count * arr->stride), items, count * arr->stride);
-    arr->count += count;
+    return hash;
 }
 
-void* _darray_pop_start(DynamicArray* arr)
+u64 _ht_get_hash(void* table, string_view key)
 {
-    if (!arr->data || arr->count < 1) { return NULL; }
-    void* head = arr->data;
-    arr->data  = (u8*)arr->data + arr->stride;
-    arr->count--;
-    return head;
-}
-
-void* _darray_pop_end(DynamicArray* arr)
-{
-    if (!arr->data || arr->count < 1) { return NULL; }
-    arr->count--;
-    return (void*)((u8*)arr->data + (arr->count * arr->stride));
-}
-
-void* _darray_get(DynamicArray* arr, u64 index)
-{
-    if (!arr->data || arr->count < 1) { return NULL; }
-    return (void*)((u8*)arr->data + (index * arr->stride));
-}
-
-void* _darray_find(DynamicArray* arr, void* value)
-{
-    if (!arr || !arr->data || arr->count < 1) { return NULL; }
-    for (u32 i = 0; i < arr->count; i++)
+    u64 hash = _ht_hash_djb2(key.data, key.count) % ht_header(table)->capacity;
+    for (u64 i = 0; i < ht_header(table)->capacity && !sv_equals(key, ht_header(table)->hash_table[hash].key); i++)
     {
-        if (memcmp(value, (u8*)arr->data + i * arr->stride, arr->stride) == 0) { return _darray_get(arr, i); }
+        hash = (hash + 1) % ht_header(table)->capacity;
     }
-    return NULL;
+    if (sv_equals(key, ht_header(table)->hash_table[hash].key)) { return hash; }
+    rlog(LOG_ERROR, "Hash table item not found");
+    abort();
+}
+
+u64 _ht_put_helper(void* table, string_view key)
+{
+    u64 hash = _ht_hash_djb2(key.data, key.count) % ht_header(table)->capacity;
+    for (u64 i = 0; i < ht_header(table)->capacity && ht_header(table)->hash_table[hash].in_used &&
+                    !sv_equals(key, ht_header(table)->hash_table[hash].key);
+         i++)
+
+    {
+        hash = (hash + 1) % ht_header(table)->capacity;
+    }
+
+    if (ht_header(table)->hash_table[hash].in_used)
+    {
+        if (sv_equals(key, ht_header(table)->hash_table[hash].key)) { return hash; }
+        else
+        {
+            rlog(LOG_ERROR, "Hash table overflow");
+            abort();
+        }
+    }
+    else
+    {
+        ht_header(table)->hash_table[hash].in_used = true;
+        ht_header(table)->hash_table[hash].key     = key;
+        ht_header(table)->count++;
+        return hash;
+    }
 }
